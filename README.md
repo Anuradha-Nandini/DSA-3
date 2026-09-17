@@ -1,57 +1,292 @@
-# Local Sequence Alignment of DNA and Protein Sequences Using Smith-Waterman Algorithm
+# GeneScan – DNA Mutation & Disease Variant Detector
 
-## About the Project
+## 📌 Project Overview
 
-This project is a **Java-based bioinformatics application** designed to compare DNA and protein sequences and identify the most similar local regions between them.
+**GeneScan** is a Java-based bioinformatics application that compares a healthy reference DNA/protein sequence with a patient sample to identify sequence differences.
 
-Sequence comparison is useful in bioinformatics for studying genes, proteins, conserved regions, and mutations. When two biological sequences contain insertions, deletions, or mutations, simply comparing them character by character may not provide a meaningful result. This project addresses this problem by using the **Smith-Waterman local alignment algorithm**, which finds the best matching region instead of forcing the entire sequences to align.
+The project uses **String Algorithms** and **Dynamic Programming** to perform sequence analysis and detect possible mutations such as:
 
-The project also includes a **Suffix Array with Kasai's LCP algorithm** as a preliminary exact-matching stage. This stage quickly identifies the longest exact common substring between the input sequences. The result can then be considered as a conserved-region candidate before performing the more flexible Smith-Waterman alignment.
+* Substitution mutations
+* Insertions
+* Deletions
+* Conserved sequence regions
 
-Therefore, the project follows a two-stage pipeline:
-
-**Exact Matching → Local Scored Alignment**
-
-This combination demonstrates the use of both **string algorithms and dynamic programming** for solving a practical bioinformatics problem.
-
----
-
-## Problem Statement
-
-Traditional sequence comparison methods may have difficulty identifying highly similar regions when two larger sequences contain mutations, insertions, or deletions.
-
-For example, two sequences may have a small region that is highly similar even though the remaining parts of the sequences are different.
-
-The objective of this project is to develop an application that:
-
-- Accepts two DNA or protein sequences as input.
-- Validates the input sequences.
-- Finds exact common regions using Suffix Array and Kasai LCP.
-- Finds the best local alignment using Smith-Waterman.
-- Allows users to configure match, mismatch, and gap scores.
-- Displays the aligned sequences and alignment statistics.
-- Calculates alignment score and percentage similarity.
-- Helps identify conserved regions and study sequence differences.
+> **Note:** This project uses simplified and illustrative biological sequences for educational purposes. It is not a diagnostic or clinical tool.
 
 ---
 
-## Main Objective
+## 🎯 Objectives
 
-The main objective is to implement sequence alignment algorithms **from first principles in Java** without depending on external sequence-alignment libraries.
-
-The application demonstrates how algorithms and data structures can be applied to a real-world computational biology problem.
+* Compare healthy and patient DNA/protein sequences.
+* Find the longest exact common region between two sequences.
+* Perform local sequence alignment.
+* Calculate alignment scores and sequence similarity.
+* Detect mismatches and gaps.
+* Classify sequence differences as substitutions or indels.
+* Analyze multiple patient samples efficiently.
 
 ---
 
-## How the Project Works
+## 🧬 Algorithms Used
 
-The project is divided into two major stages.
+### 1. Suffix Array
 
-### Stage 1: Exact Matching — Suffix Array + Kasai LCP
+The project creates a **Suffix Array** from the combined healthy and patient sequences.
 
-The first stage searches for an exact common region between the two sequences.
+A suffix is a substring that starts at a particular position and continues until the end of the sequence.
 
-The input sequences are combined using a separator:
+The suffixes are sorted and used to efficiently compare different regions of the sequences.
+
+### 2. Kasai LCP Algorithm
+
+**Kasai's Longest Common Prefix (LCP)** algorithm is used along with the Suffix Array.
+
+It calculates how many characters are common at the beginning of two neighboring suffixes.
+
+The project uses this to find the **Longest Exact Common Substring** between the healthy and patient sequences.
+
+For example, in the HBB DNA example, the project identifies:
 
 ```text
-Sequence A + Separator + Sequence B
+ATGGTGCACCTGACTCCTG
+```
+
+as the longest exact common region.
+
+---
+
+### 3. Smith–Waterman Algorithm
+
+The **Smith–Waterman algorithm** is the main sequence alignment algorithm used in the project.
+
+It performs **local alignment**, meaning it searches for the best matching region between two sequences.
+
+The algorithm creates a **2D Dynamic Programming matrix**.
+
+For every cell, it considers:
+
+* Diagonal → Match or mismatch
+* Up → Gap
+* Left → Gap
+* Zero → Start a new local alignment
+
+The scoring values can be configured by the user.
+
+Example:
+
+```text
+Match    = +2
+Mismatch = -1
+Gap      = -2
+```
+
+The highest value in the matrix represents the best local alignment score.
+
+---
+
+## 🔄 Algorithm Workflow
+
+```text
+Healthy Sequence + Patient Sequence
+                ↓
+        Sequence Validation
+                ↓
+      Suffix Array Construction
+                ↓
+          Kasai LCP Algorithm
+                ↓
+    Longest Exact Common Substring
+                ↓
+       Smith–Waterman Alignment
+                ↓
+        Dynamic Programming Matrix
+                ↓
+              Traceback
+                ↓
+       Aligned Sequences Generated
+                ↓
+      Match / Mismatch / Gap Count
+                ↓
+          Mutation Detection
+```
+
+---
+
+## 🔍 Mutation Detection
+
+After Smith–Waterman alignment, the aligned sequences are compared character by character.
+
+### Match
+
+If both characters are the same:
+
+```text
+A
+A
+```
+
+It is counted as a match.
+
+### Substitution
+
+If the characters are different:
+
+```text
+G
+T
+```
+
+It is counted as a mismatch and reported as a substitution mutation.
+
+### Insertion / Deletion
+
+If one sequence contains a gap:
+
+```text
+ATCTTTGGT
+ATC---GGT
+```
+
+the gap positions are reported as an insertion/deletion (indel).
+
+---
+
+## 📊 Output
+
+The program displays:
+
+* Healthy reference sequence
+* Patient sample sequence
+* Scoring parameters
+* Longest exact common substring
+* LCP length
+* Smith–Waterman alignment score
+* Aligned sequences
+* Match indicators
+* Number of matches
+* Number of mismatches
+* Number of gaps
+* Percentage similarity
+* Alignment region
+* Execution time
+* Detected mutation type
+
+---
+
+## 🧪 Example
+
+### HBB DNA Sequence
+
+The project compares:
+
+```text
+Healthy:
+ATGGTGCACCTGACTCCTGAGGAGAAGTCT
+
+Patient:
+ATGGTGCACCTGACTCCTGTGGAGAAGTCT
+```
+
+Using:
+
+```text
+Match    = +2
+Mismatch = -1
+Gap      = -2
+```
+
+The output gives:
+
+```text
+Alignment Score   : 57
+Matches           : 29
+Mismatches        : 1
+Gaps              : 0
+Similarity        : 96.67%
+```
+
+The program therefore reports:
+
+```text
+1 substitution mutation
+```
+
+The project also includes an illustrative deletion case where the alignment contains three gap positions and the program reports an indel.
+
+---
+
+## 🧬 Protein-Level Analysis
+
+GeneScan can also compare protein sequences.
+
+For the beta-globin protein example, the program performs the same two-stage process:
+
+```text
+Suffix Array + Kasai LCP
+            ↓
+Smith–Waterman Alignment
+            ↓
+Mutation Analysis
+```
+
+The example produces:
+
+```text
+Matches      : 58
+Mismatches   : 1
+Gaps         : 0
+Similarity   : 98.31%
+```
+
+---
+
+## 📈 Batch Screening
+
+The project also demonstrates batch screening using **100 patient DNA samples** against a healthy HBB reference sequence.
+
+Each sample is processed using Smith–Waterman alignment and classified based on the detected sequence differences.
+
+The demonstration output reports:
+
+```text
+Total Samples Screened     : 100
+Mutation Detected          : 33
+Normal                     : 67
+Average Time / Sample      : 0.1247 ms
+```
+
+This demonstrates how the alignment algorithm can be repeatedly applied to multiple samples.
+
+---
+
+## ⚡ Performance Analysis
+
+The project also measures Smith–Waterman execution time for different sequence sizes.
+
+Example results:
+
+| Sequence Size | Execution Time |
+| ------------- | -------------: |
+| 100 × 100     |       2.139 ms |
+| 200 × 200     |       6.344 ms |
+| 400 × 400     |      12.127 ms |
+| 800 × 800     |      16.741 ms |
+| 1600 × 1600   |      81.168 ms |
+
+This demonstrates the increase in computation time as sequence length increases.
+
+---
+
+## 🛠️ Technologies Used
+
+* **Java**
+* **Dynamic Programming**
+* **String Algorithms**
+* **Suffix Array**
+* **Kasai LCP**
+* **Smith–Waterman Local Alignment**
+* **2D Arrays**
+* **Sequence Analysis**
+
+---
+
